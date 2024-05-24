@@ -1,0 +1,298 @@
+{
+	"info": {
+		"_postman_id": "4942a261-8c80-4a6c-9278-1de1c57dfdd5",
+		"name": "Skinalyze",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "34793117"
+	},
+	"item": [
+		{
+			"name": "Register [POST]",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \r\n    \"nama\": \"Ashel\",\r\n    \"email\": \"adzanashel@gmail.com\",\r\n    \"password\": \"ashel123\",\r\n    \"gender\": \"perempuan\",\r\n    \"age\": 19\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login [POST]",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"adzanashel@gmail.com\",\r\n    \"password\": \"ashel123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Skin Type User [PUT]",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \r\n    \"id_user\": 1, \r\n    \"skintypes\": 3, \r\n    \"sensitif\": 1\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/skintype",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"skintype"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search Product [GET]",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/search?product_name=Acwell",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"search"
+					],
+					"query": [
+						{
+							"key": "product_name",
+							"value": "Acwell"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Detail Product [GET]",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8081/detail?id_skin_care=56",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"detail"
+					],
+					"query": [
+						{
+							"key": "id_skin_care",
+							"value": "56"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Recommendations [GET]",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"sensitif\": 1,\r\n    \"id_tipe_skin_type\": 3,\r\n    \"id_skin_problem\": \"1,3,5\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/recommendation",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"recommendation"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "History [POST]",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \r\n    \"timestamp\": \"2024-05-25 00:03:50\", \r\n    \"id_user\": 1, \r\n    \"id_tipe_skin_type\": 3, \r\n    \"sensitif\": 1, \r\n    \"id_skin_problem\": \"1,3,5\", \r\n    \"id_skin_care\": \"921,1064,1054,46,520,645,594,8,769,481,403,933,707,754,237\" \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/postRecommendation",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"postRecommendation"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "History [GET]",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8081/history?id_user=5",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"history"
+					],
+					"query": [
+						{
+							"key": "id_user",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "History Details [GET]",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8081/history/detail?id_user=1&id_rekomendasi=1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"history",
+						"detail"
+					],
+					"query": [
+						{
+							"key": "id_user",
+							"value": "1"
+						},
+						{
+							"key": "id_rekomendasi",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete History Details [DELETE]",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id_rekomendasi\": 1\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/deleteRecommendation",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"deleteRecommendation"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
