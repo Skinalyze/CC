@@ -2,7 +2,7 @@ const express = require("express");
 const mysql = require("mysql2");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken"); // Tambahkan ini untuk JWT
+const jwt = require("jsonwebtoken");
 
 const app = express();
 app.use(cors());
@@ -42,22 +42,19 @@ function verifyToken(req, res, next) {
 }
 
 // Register [POST]
-app.post('/register', (req, res) => {
+app.post('/register', async (req, res) => {
     const { nama, email, password, gender, age } = req.body;
-    
+
     // Validasi input
     if (!nama || !email || !password || !gender || !age) {
         return res.status(400).json({ message: "Terdapat Field yang kosong!" });
     }
 
-    // Validasi email
-    const query_1 = "SELECT * FROM user WHERE `email` = ?";
-    db.query(query_1, [email], (err, result) => {
-        if (err) {
-            console.error("Error:", err);
-            return res.status(500).json({ message: "Internal Server Error" });
-        }
-        
+    try {
+        // Validasi email
+        const query_1 = "SELECT * FROM user WHERE `email` = ?";
+        const [result] = await dbPromise.query(query_1, [email]);
+
         if (result.length > 0) {
             return res.status(409).json({ message: "Email sudah terdaftar." });
         }
@@ -71,19 +68,17 @@ app.post('/register', (req, res) => {
         // Memasukan data ke tabel user
         const query_2 = "INSERT INTO user (`nama`, `email`, `password`, `gender`, `age`) VALUES (?, ?, ?, ?, ?)";
         const values = [nama, email, hashedPassword, genderValue, age];
-        db.query(query_2, values, (err) => {
-            if (err) {
-                console.error("Error:", err);
-                return res.status(500).json({ message: "Internal Server Error" });
-            }
+        await dbPromise.query(query_2, values);
 
-            return res.status(201).json({ message: "User berhasil dibuat." });
-        });
-    });
+        return res.status(201).json({ message: "User berhasil dibuat." });
+    } catch (err) {
+        console.error("Error:", err);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
 });
 
 // Login [POST]
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     // Validasi input
@@ -91,14 +86,11 @@ app.post('/login', (req, res) => {
         return res.status(400).json({ message: "Terdapat Field yang kosong!" });
     }
 
-    // Periksa apakah email ada di database
-    const sql = "SELECT * FROM user WHERE `email` = ?";
-    db.query(sql, [email], (err, result) => {
-        if (err) {
-            console.error("Error:", err);
-            return res.status(500).json({ message: "Internal Server Error" });
-        }
-        
+    try {
+        // Periksa apakah email ada di database
+        const sql = "SELECT * FROM user WHERE `email` = ?";
+        const [result] = await dbPromise.query(sql, [email]);
+
         if (result.length === 0) {
             return res.status(401).json({ message: "Invalid email." });
         }
@@ -114,34 +106,49 @@ app.post('/login', (req, res) => {
         const token = jwt.sign({ id_user: user.id_user }, SECRET_KEY, { expiresIn: '1h' });
 
         return res.status(200).json({ message: "Login successfully.", token: token, email: user.email });
-    });
+    } catch (err) {
+        console.error("Error:", err);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
 });
 
 // Update Skin Type User [PUT]
-app.put('/skintype', (req, res) => {
-    const { id_user, skintypes, sensitif } = req.body;
+app.put('/skintype', verifyToken, async (req, res) => {
+    const { skintypes, sensitif } = req.body;
+
+    const userId = req.user.id_user;
+
+    if (!userId) {
+        return res.status(400).json({ message: "Diperlukan Login untuk mengakses laman ini" });
+    }
 
     // Validasi input
-    if (!id_user || !skintypes || !sensitif) {
+    if (!skintypes || !sensitif) {
         return res.status(400).json({ message: "Terdapat Field yang kosong!" });
     }
 
-    // Melakukan update data ke tabel user
-    const sql = "UPDATE user SET `skintypes` = ?, `sensitif` = ? WHERE `id_user` = ?";
-    const values = [skintypes, sensitif, id_user];
-    db.query(sql, values, (err) => {
-        if (err) {
-            console.error("Error:", err);
-            return res.status(500).json({ message: "Internal Server Error" });
-        }
+    try {
+        // Melakukan update data ke tabel user
+        const sql = "UPDATE user SET `skintypes` = ?, `sensitif` = ? WHERE `id_user` = ?";
+        const values = [skintypes, sensitif, userId];
+        await dbPromise.query(sql, values);
 
-        return res.status(201).json({ message: "Skin type updated successfully." });
-    });
+        return res.status(200).json({ message: "Skin type updated successfully." });
+    } catch (err) {
+        console.error("Error:", err);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
 });
 
 // Search Product [GET]
-app.get('/search', async (req, res) => {
+app.get('/search', verifyToken, async (req, res) => {
     const { product_name } = req.query;
+
+    const userId = req.user.id_user;
+
+    if (!userId) {
+        return res.status(400).json({ message: "Diperlukan Login untuk mengakses laman ini" });
+    }
 
     if (!product_name) {
         return res.status(400).json({ message: "Bad Request: product_name is required" });
@@ -150,17 +157,13 @@ app.get('/search', async (req, res) => {
     try {
         const arrayKata = product_name.split(" ");
 
-        // Membuat bagian WHERE dari query dengan LIKE untuk setiap kata
         const conditions = arrayKata.map(() => `product_name LIKE ?`).join(' AND ');
         const sql = `SELECT * FROM skin_care WHERE ${conditions}`;
 
-        // Menyiapkan nilai untuk parameter query
         const queryParams = arrayKata.map(kata => `%${kata}%`);
 
-        // Menjalankan query dengan nilai queryParams sebagai parameter
         const [result] = await dbPromise.query(sql, queryParams);
 
-        // Mengembalikan hanya product_name
         const productNames = result.map(row => row.product_name);
 
         return res.status(200).json({ product_names: productNames });
@@ -171,11 +174,17 @@ app.get('/search', async (req, res) => {
 });
 
 // Detail Product [GET]
-app.get('/detail', async (req, res) => {
+app.get('/search/detail', verifyToken, async (req, res) => {
     const { id_skin_care } = req.query;
 
+    const userId = req.user.id_user;
+
+    if (!userId) {
+        return res.status(400).json({ message: "Diperlukan Login untuk mengakses laman ini" });
+    }
+
     if (!id_skin_care) {
-        return res.status(400).json({ message: "Bad Request: id_skin_care is required" });
+        return res.status(400).json({ message: "id_skin_care diperlukan" });
     }
 
     try {
@@ -249,92 +258,93 @@ app.get('/detail', async (req, res) => {
 });
 
 // Recommendations [GET]
-app.get('/recommendation', (req, res) => {
-    const { sensitif, id_tipe_skin_type, id_skin_problem } = req.query;
-    console.log(sensitif, id_tipe_skin_type, id_skin_problem);
-  
-    let query = `
-      SELECT skin_care.*
-      FROM skin_care
-      LEFT JOIN skin_care_type ON skin_care.id_skin_care = skin_care_type.id_skin_care
-      LEFT JOIN skin_care_problem ON skin_care.id_skin_care = skin_care_problem.id_skin_care
-      WHERE 1=1
+app.get('/recommendation', verifyToken, async (req, res) => {
+    const { id_tipe_skin_type, id_skin_problem } = req.query;
+    const userId = req.user.id_user;
+
+    if (!userId) {
+        return res.status(400).json({ message: "Diperlukan Login untuk mengakses laman ini" });
+    }
+
+    const sensitif = req.user.sensitif;
+
+    let queryText = `
+        SELECT skin_care.*
+        FROM skin_care
+        LEFT JOIN skin_care_type ON skin_care.id_skin_care = skin_care_type.id_skin_care
+        LEFT JOIN skin_care_problem ON skin_care.id_skin_care = skin_care_problem.id_skin_care
+        WHERE 1=1
     `;
     const queryParams = [];
-  
+
     if (sensitif) {
-      query += " AND skin_care.sensitif = ?";
-      queryParams.push(sensitif);
+        queryText += " AND skin_care.sensitif = ?";
+        queryParams.push(sensitif);
     }
-  
+
     if (id_tipe_skin_type) {
-      query += " AND skin_care_type.id_tipe_skin_type = ?";
-      queryParams.push(id_tipe_skin_type);
+        queryText += " AND skin_care_type.id_tipe_skin_type = ?";
+        queryParams.push(id_tipe_skin_type);
     }
-  
+
     if (id_skin_problem) {
-      const ids = id_skin_problem.split(",").map((id) => id.trim());
-      query += ` AND skin_care_problem.id_skin_problem IN (${ids
-        .map(() => "?")
-        .join(",")})`;
-      queryParams.push(...ids);
+        const ids = id_skin_problem.split(",").map((id) => id.trim());
+        queryText += ` AND skin_care_problem.id_skin_problem IN (${ids.map(() => "?").join(",")})`;
+        queryParams.push(...ids);
     }
-  
+
     // Mengacak hasil di query
-    query += " ORDER BY RAND()";
-  
-    db.query(query, queryParams, (err, results) => {
-      if (err) {
+    queryText += " ORDER BY RAND()";
+
+    try {
+        const results = await dbPromise.query(queryText, queryParams);
+        const groupedResults = {};
+        results.forEach((result) => {
+            const type = result.id_product_type;
+            if (!groupedResults[type]) {
+                groupedResults[type] = [];
+            }
+            if (groupedResults[type].length < 3) {
+                groupedResults[type].push(result);
+            }
+        });
+
+        // Menggabungkan hasil dari setiap grup menjadi satu array
+        const finalResults = Object.values(groupedResults).flat();
+
+        res.json(finalResults);
+    } catch (err) {
         console.error("Error executing query:", err);
         res.status(500).send("Server error");
-        return;
-      }
-  
-      // Memproses hasil untuk mendapatkan 3 item acak untuk setiap jenis id_product_type
-      const groupedResults = {};
-      results.forEach((result) => {
-        const type = result.id_product_type;
-        if (!groupedResults[type]) {
-          groupedResults[type] = [];
-        }
-        if (groupedResults[type].length < 3) {
-          groupedResults[type].push(result);
-        }
-      });
-  
-      // Menggabungkan hasil dari setiap grup menjadi satu array
-      const finalResults = Object.values(groupedResults).flat();
-  
-      res.json(finalResults);
-    });
+    }
 });
 
 // History [POST]
-app.post('/postRecommendation', async (req, res) => {
-    const { timestamp, id_user, id_tipe_skin_type, sensitif, id_skin_problem, id_skin_care } = req.body;
+app.post('/postRecommendation', verifyToken, async (req, res) => {
+    const { id_tipe_skin_type, sensitif, id_skin_problem, id_skin_care } = req.body;
 
-
+    const userId = req.user.id_user; // Mengambil id_user dari token yang terverifikasi
 
     const arrayKata_skin_prob = id_skin_problem.split(",");
     const arrayKata_skin_care = id_skin_care.split(",");
 
     try {
         const query_1 = "INSERT INTO rekomendasi (`id_user`, `sensitif`, `id_tipe_skin_type`, `timestamp`) VALUES (?, ?, ?, ?)";
-        const values_1 = [id_user, sensitif, id_tipe_skin_type, timestamp];
+        const values_1 = [userId, sensitif, id_tipe_skin_type, new Date().toISOString()];
         const [result] = await dbPromise.query(query_1, values_1);
 
         const id_rekomendasi = result.insertId; // Mengambil id_rekomendasi dari hasil insert
 
-        const promises_1 = arrayKata_skin_prob.map((id_skin_problem_1) => {
+        const promises_1 = arrayKata_skin_prob.map(async (id_skin_problem_1) => {
             const sql_2 = "INSERT INTO skin_problem_rekomendasi (`id_rekomendasi`, `id_skin_problem`) VALUES (?, ?)";
             const values_2 = [id_rekomendasi, id_skin_problem_1];
-            return dbPromise.query(sql_2, values_2);
+            await dbPromise.query(sql_2, values_2);
         });
 
-        const promises_2 = arrayKata_skin_care.map((id_skin_care_1) => {
+        const promises_2 = arrayKata_skin_care.map(async (id_skin_care_1) => {
             const sql_3 = "INSERT INTO skin_care_rekomendasi (`id_rekomendasi`, `id_skin_care`) VALUES (?, ?)";
             const values_3 = [id_rekomendasi, id_skin_care_1];
-            return dbPromise.query(sql_3, values_3);
+            await dbPromise.query(sql_3, values_3);
         });
 
         await Promise.all([...promises_1, ...promises_2]);
@@ -348,16 +358,16 @@ app.post('/postRecommendation', async (req, res) => {
 });
 
 // History [GET]
-app.get('/history', async (req, res) => {
-    const { id_user } = req.query;
-        
-    if (!id_user) {
-        return res.status(400).json({ message: "Bad Request: id user is required" });
+app.get('/history', verifyToken, async (req, res) => {
+    const userId = req.user.id_user;
+
+    if (!userId) {
+        return res.status(400).json({ message: "Diperlukan Login untuk mengakses laman ini" });
     }
 
     try {
         const query_1 = "SELECT * FROM rekomendasi WHERE `id_user` = ?";
-        const [rekomendasi] = await db.promise().query(query_1, [id_user]);
+        const [rekomendasi] = await dbPromise.query(query_1, [userId]);
 
         if (rekomendasi.length === 0) {
             return res.status(404).json({ message: "Not Found: No recomendation found with the given id_user" });
@@ -373,10 +383,16 @@ app.get('/history', async (req, res) => {
 });
 
 // History Details [GET]
-app.get('/history/detail', async (req, res) => {
-    const { id_rekomendasi, id_user } = req.query;
+app.get('/history/detail', verifyToken, async (req, res) => {
+    const { id_rekomendasi } = req.query;
 
-    if (!id_rekomendasi || !id_user) {
+    const userId = req.user.id_user;
+
+    if (!userId) {
+        return res.status(400).json({ message: "Diperlukan Login untuk mengakses laman ini" });
+    }
+
+    if (!id_rekomendasi) {
         return res.status(400).json({ message: "Terjadi kesalahan input" });
     }
 
@@ -432,7 +448,7 @@ app.get('/history/detail', async (req, res) => {
 
         return res.status(200).json({
             timestamp: rekomdasiDetails.timestamp,
-            userId: id_user,
+            userId: userId,
             skin_type: skin_type,
             skin_problem: skinProblemDetails,
             skin_care: skinCareDetails
@@ -445,43 +461,25 @@ app.get('/history/detail', async (req, res) => {
 })
 
 // Delete History Details
-app.delete("/deleteRecommendation", (req, res) => {
-  const { id_rekomendasi, id_user } = req.query;
+app.delete('/deleteRecommendation', verifyToken, async (req, res) =>{
+    const { id_rekomendasi } = req.body;
 
-  if (!id_rekomendasi || !id_user) {
-    return res.status(400).json({
-      status: "fail",
-      message: "id_rekomendasi and id_user are required",
-    });
-  }
+    const userId = req.user.id_user;
 
-  // Menghapus entri dari tabel rekomendasi
-  const deleteRecommendationQuery = `
-      DELETE FROM rekomendasi
-      WHERE id_rekomendasi = ? AND id_user = ?
-  `;
-  
-  db.query(deleteRecommendationQuery, [id_rekomendasi, id_user], (err, results) => {
-    if (err) {
-      return res.status(500).json({
-        status: "Server error",
-        message: "Error executing query: " + err.message,
-      });
+    if (!userId) {
+        return res.status(400).json({ message: "Diperlukan Login untuk mengakses laman ini" });
     }
 
-    if (results.affectedRows === 0) {
-      return res.status(404).json({
-        status: "fail",
-        message: "Recommendation not found or not authorized to delete",
-      });
-    }
+    try {
+        const query_1 = "DELETE FROM rekomendasi WHERE `id_rekomendasi` = ? ";
+        await dbPromise.query(query_1, id_rekomendasi);
 
-    return res.status(200).json({
-      status: "success",
-      message: "Recommendation deleted successfully",
-    });
-  });
-});
+        return res.status(200).json({ message: "Berhasil menghapus rekomendasi!" });
+    } catch (err) {
+        console.error("Error:", err);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+})
 
 app.listen(8081, ()=> {
     console.log("listening");
