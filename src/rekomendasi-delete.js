@@ -1,64 +1,48 @@
 const express = require("express");
-const mysql = require("mysql");
+const mysql = require("mysql2");
 const hapus = express();
+const verifyToken = require("./functionToken");
 
-// Fungsi untuk membuat koneksi database
-function createDatabaseConnection() {
-  return mysql.createConnection({
-    host: "localhost",
-    user: "root", // sesuaikan dengan username database Anda
-    password: "", // sesuaikan dengan password database Anda
-    database: "skinalyze", // sesuaikan dengan nama database Anda
-  });
-}
+const db = mysql.createConnection({
+  host: "localhost",
+  user: "root", // sesuaikan dengan username database Anda
+  password: "", // sesuaikan dengan password database Anda
+  database: "skinalyze", // sesuaikan dengan nama database Anda
+});
 
-// Endpoint untuk menghapus rekomendasi
-hapus.delete("/rekomendasi", (req, res) => {
-  const { id_rekomendasi, id_user } = req.query;
+db.connect((err) => {
+  if (err) {
+    console.error("Error connecting to the database:", err);
+    return;
+  }
+  console.log("Connected to the MySQL database.");
+});
 
-  if (!id_rekomendasi || !id_user) {
-    return res.status(400).json({
-      status: "fail",
-      message: "id_rekomendasi and id_user are required",
-    });
+const dbPromise = db.promise();
+
+// Delete History Details
+hapus.delete('/deleteRecommendation', verifyToken, async (req, res) =>{
+  const { id_rekomendasi } = req.body;
+
+  const userId = req.user.id_user;
+
+  if (!userId) {
+      return res.status(400).json({ message: "Diperlukan Login untuk mengakses laman ini" });
   }
 
-  // Menggunakan fungsi createDatabaseConnection untuk membuat koneksi database
-  const db = createDatabaseConnection();
+  if (!id_rekomendasi) {
+    return res.status(400).json({ message: "Tidak ada rekomendasi" });
+  }
 
-  // Menghapus entri dari tabel rekomendasi
-  const deleteRecommendationQuery = `
-      DELETE FROM rekomendasi
-      WHERE id_rekomendasi = ? AND id_user = ?
-  `;
+  try {
+      const query_1 = "DELETE FROM rekomendasi WHERE `id_rekomendasi` = ? ";
+      await dbPromise.query(query_1, id_rekomendasi);
 
-  db.query(
-    deleteRecommendationQuery,
-    [id_rekomendasi, id_user],
-    (err, results) => {
-      // Menutup koneksi database setelah selesai menjalankan query
-      db.end();
-
-      if (err) {
-        return res.status(500).json({
-          status: "Server error",
-          message: "Error executing query: " + err.message,
-        });
-      }
-
-      if (results.affectedRows === 0) {
-        return res.status(404).json({
-          status: "fail",
-          message: "Recommendation not found or not authorized to delete",
-        });
-      }
-
-      return res.status(200).json({
-        status: "success",
-        message: "Recommendation deleted successfully",
-      });
-    }
-  );
-});
+      return res.status(200).json({ message: "Berhasil menghapus rekomendasi!" });
+  } catch (err) {
+      console.error("Error:", err);
+      return res.status(500).json({ message: "Internal Server Error" });
+  }
+})
 
 module.exports = hapus;
