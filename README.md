@@ -1,4 +1,4 @@
-# Skinalyze : Personalized skin care recommendations
+# `Skinalyze : Personalized skin care recommendations`
 > Team : `C241-PS385`
 > <br>
 > Project for: `Capstone Project Bangkit Academy 2024 H1`
