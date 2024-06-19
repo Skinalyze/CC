@@ -1,5 +1,5 @@
 # Skinalyze : Personalized skin care recommendations
-> Team : 'C241-PS385'
+> Team : 'C241-PS385'\n
 > Project for: 'Capstone Project Bangkit Academy 2024 H1'
 ## Objective
 * 📱 Develop a mobile application (Android) for personalized skincare recommendations.
