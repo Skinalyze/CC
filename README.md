@@ -1,4 +1,11 @@
 # Skinalyze : Personalized skin care recommendations
+![Visits Badge](https://badges.pufler.dev/visits/stefansphtr/Skinalyze-ML)
+![Updated Badge](https://badges.pufler.dev/updated/stefansphtr/Skinalyze-ML)
+![Created Badge](https://badges.pufler.dev/created/stefansphtr/Skinalyze-ML)
+![Contributors Badge](https://img.shields.io/github/contributors/stefansphtr/Skinalyze-ML)
+![Last Commit Badge](https://img.shields.io/github/last-commit/stefansphtr/Skinalyze-ML)
+![Commit Activity Badge](https://img.shields.io/github/commit-activity/m/stefansphtr/Skinalyze-ML)
+![Repo Size Badge](https://img.shields.io/github/repo-size/stefansphtr/Skinalyze-ML)
 > Team : `C241-PS385`
 > <br>
 > Project for: `Capstone Project Bangkit Academy 2024 H1`
