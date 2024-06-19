@@ -1,4 +1,6 @@
 # Skinalyze : Personalized skin care recommendations
+> Team : 'C241-PS385'
+> Project for: 'Capstone Project Bangkit Academy 2024 H1'
 ## Objective
 * 📱 Develop a mobile application (Android) for personalized skincare recommendations.
 * 💡 Design a recommendation system that goes beyond skin type identification. This system will offer personalized skincare product packages tailored to individual skin concerns.
