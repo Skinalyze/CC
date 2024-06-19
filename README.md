@@ -29,7 +29,7 @@ If all the fields are filled and the email is not on the database the API will p
 <br>
 <br>
 ![image42](https://github.com/Skinalyze/CC/assets/118964889/6cd72190-d2b6-48b0-9dac-732cf71099f0)
-
+<br>
 ### Login
 In login.js API will get 2 fields from body:
 * email
@@ -40,7 +40,7 @@ if everything is correct API will return "Login successfully.", user id, access 
 <br>
 <br>
 ![image](https://github.com/Skinalyze/CC/assets/118964889/fdbd9ed4-7f89-49fa-8925-1d764c017991)
-
+<br>
 ### Search Proruct
 In search.js API will get a product_name field from body
 <br>
