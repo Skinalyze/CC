@@ -14,6 +14,10 @@
 ## Cloud Computing Task
 In skinalyze the cloud computing team is task to create API's, database, and also deploy both database and API's so it can be used by the mobile application to then be used to store and fetch the data
 
+## Database Architecture
+![skinalyze-Final drawio (1)](https://github.com/Skinalyze/CC/assets/93993894/9681b409-c020-4482-9666-749133934f4f)
+
+
 ## API's
 ### Register
 In register.js API will get 5 fields from body :
@@ -43,9 +47,13 @@ if everything is correct API will return "Login successfully.", user id, access 
 
 ### Refresh token
 This API refreshes access tokens that are only valid for one hour, ensuring users remain continuously logged into our application without interruption. The main purpose of this API is to maintain user convenience by automatically extending their login sessions, while ensuring their data's security is properly maintained. This way, users do not need to re-enter their credentials frequently, improving the user experience while minimizing security risks to their sensitive data.
+![image](https://github.com/Skinalyze/CC/assets/93993894/9f4504d4-24fe-4a5c-8808-cfea72f64468)
+
 
 ### Profil
 This API is designed to retrieve user data from the user table in the database using the id_user obtained from the existing access token. Once accessed, this API will return several important attributes of the user, including name, email, gender, age, skin type, and skin sensitivity level.
+![image](https://github.com/Skinalyze/CC/assets/93993894/4c4af124-1688-4ab9-8a5f-116062dc3583)
+
 
 ### Search Proruct
 In search.js API will get a product_name field from body
@@ -79,7 +87,7 @@ when the id_rekomendasi field is filled, the API will run a delete query and wil
 
 
 ## Cloud Architectur
-![Untitled (1)](https://github.com/Skinalyze/CC/assets/93993894/5f3923ce-53ac-4349-97a9-54db9673e153)
+![Untitled (1)](https://github.com/Skinalyze/CC/assets/93993894/8e4b50b9-c8f3-4a68-b2d6-40c00cb99910)
 
 ### Cloud Run
 Cloud Run is used to support the API deployment process, managing data retrieval and storage in the database. Using Cloud Run allows the API to run serverless, meaning we don't need to worry about server or infrastructure management. Cloud Run enables applications to scale automatically based on demand, ensuring optimal performance and efficient handling of user requests.
