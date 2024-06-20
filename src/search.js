@@ -1,52 +1,47 @@
 const express = require("express");
-const mysql = require("mysql");
 const search = express();
+const verify_token = require("./functionToken");
+const dbPromise = require("./db");
 
-const db = mysql.createConnection({
-  host: "localhost",
-  user: "root", // sesuaikan dengan username database Anda
-  password: "", // sesuaikan dengan password database Anda
-  database: "skinalyze", // sesuaikan dengan nama database Anda
-});
+const cors = require("cors");
+search.use(cors());
+search.use(express.json());
 
-db.connect((err) => {
-  if (err) {
-    console.error("Error connecting to the database:", err);
-    return;
-  }
-  console.log("Connected to the MySQL database.");
-});
+search.get('/search', verify_token, async (req, res) => {
+    const { product_name } = req.query;
 
-search.get("/search", async (req, res) => {
-  const { product_name } = req.query;
+    const user_id = req.user.id_user;
 
-  if (!product_name) {
-    return res
-      .status(400)
-      .json({ message: "Bad Request: product_name is required" });
-  }
+    if (!user_id) {
+        return res.status(400).json({ message: "Diperlukan Login untuk mengakses laman ini" });
+    }
 
-  try {
-    const arrayKata = product_name.split(" ");
+    if (!product_name) {
+        return res.status(400).json({ message: "Terdapat Field yang kosong!" });
+    }
 
-    // Membuat bagian WHERE dari query dengan LIKE untuk setiap kata
-    const conditions = arrayKata.map(() => `product_name LIKE ?`).join(" AND ");
-    const sql = `SELECT * FROM skin_care WHERE ${conditions}`;
+    try {
+        const array_kata = product_name.split(" ");
 
-    // Menyiapkan nilai untuk parameter query
-    const queryParams = arrayKata.map((kata) => `%${kata}%`);
+        const conditions = array_kata.map(() => `product_name LIKE ?`).join(' AND ');
+        const query_1 = `SELECT * FROM skin_care WHERE ${conditions}`;
 
-    // Menjalankan query dengan nilai queryParams sebagai parameter
-    const [result] = await dbPromise.query(sql, queryParams);
+        const query_params = array_kata.map(kata => `%${kata}%`);
 
-    // Mengembalikan hanya product_name
-    const productNames = result.map((row) => row.product_name);
+        const [result] = await dbPromise.query(query_1, query_params);
 
-    return res.status(200).json({ product_names: productNames });
-  } catch (err) {
-    console.error("Error:", err);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
+        const products = result.map(row => ({
+            id_skin_care: row.id_skin_care,
+            product_name: row.product_name,
+            brand: row.brand,
+            foto: row.picture_src
+        }));
+
+        return res.status(200).json(products);
+    } catch (err) {
+        console.error("Error:", err);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
 });
 
 module.exports = search;
