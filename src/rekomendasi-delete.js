@@ -1,64 +1,34 @@
 const express = require("express");
-const mysql = require("mysql");
 const hapus = express();
+const verify_token = require("./functionToken");
+const dbPromise = require("./db");
 
-// Fungsi untuk membuat koneksi database
-function createDatabaseConnection() {
-  return mysql.createConnection({
-    host: "localhost",
-    user: "root", // sesuaikan dengan username database Anda
-    password: "", // sesuaikan dengan password database Anda
-    database: "skinalyze", // sesuaikan dengan nama database Anda
-  });
-}
+const cors = require("cors");
+hapus.use(cors());
+hapus.use(express.json());
 
-// Endpoint untuk menghapus rekomendasi
-hapus.delete("/rekomendasi", (req, res) => {
-  const { id_rekomendasi, id_user } = req.query;
+hapus.delete('/deleteRecommendation', verify_token, async (req, res) =>{
+  const { id_rekomendasi } = req.body;
 
-  if (!id_rekomendasi || !id_user) {
-    return res.status(400).json({
-      status: "fail",
-      message: "id_rekomendasi and id_user are required",
-    });
+  const user_id = req.user.id_user;
+
+  if (!user_id) {
+      return res.status(400).json({ message: "Diperlukan Login untuk mengakses laman ini" });
   }
 
-  // Menggunakan fungsi createDatabaseConnection untuk membuat koneksi database
-  const db = createDatabaseConnection();
+  if (!id_rekomendasi) {
+    return res.status(400).json({ message: "Rekomendasi tidak ditemukan!" });
+  }
 
-  // Menghapus entri dari tabel rekomendasi
-  const deleteRecommendationQuery = `
-      DELETE FROM rekomendasi
-      WHERE id_rekomendasi = ? AND id_user = ?
-  `;
+  try {
+      const query_1 = "DELETE FROM rekomendasi WHERE `id_rekomendasi` = ? ";
+      await dbPromise.query(query_1, id_rekomendasi);
 
-  db.query(
-    deleteRecommendationQuery,
-    [id_rekomendasi, id_user],
-    (err, results) => {
-      // Menutup koneksi database setelah selesai menjalankan query
-      db.end();
-
-      if (err) {
-        return res.status(500).json({
-          status: "Server error",
-          message: "Error executing query: " + err.message,
-        });
-      }
-
-      if (results.affectedRows === 0) {
-        return res.status(404).json({
-          status: "fail",
-          message: "Recommendation not found or not authorized to delete",
-        });
-      }
-
-      return res.status(200).json({
-        status: "success",
-        message: "Recommendation deleted successfully",
-      });
-    }
-  );
-});
+      return res.status(200).json({ message: "Berhasil menghapus rekomendasi!" });
+  } catch (err) {
+      console.error("Error:", err);
+      return res.status(500).json({ message: "Internal Server Error" });
+  }
+})
 
 module.exports = hapus;
