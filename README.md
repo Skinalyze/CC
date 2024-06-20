@@ -41,6 +41,12 @@ if everything is correct API will return "Login successfully.", user id, access 
 <br>
 ![image](https://github.com/Skinalyze/CC/assets/118964889/fdbd9ed4-7f89-49fa-8925-1d764c017991)
 
+### Refresh token
+This API refreshes access tokens that are only valid for one hour, ensuring users remain continuously logged into our application without interruption. The main purpose of this API is to maintain user convenience by automatically extending their login sessions, while ensuring their data's security is properly maintained. This way, users do not need to re-enter their credentials frequently, improving the user experience while minimizing security risks to their sensitive data.
+
+### Profil
+This API is designed to retrieve user data from the user table in the database using the id_user obtained from the existing access token. Once accessed, this API will return several important attributes of the user, including name, email, gender, age, skin type, and skin sensitivity level.
+
 ### Search Proruct
 In search.js API will get a product_name field from body
 <br>
@@ -70,3 +76,13 @@ when the id_rekomendasi field is filled, the API will run a delete query and wil
 <br>
 <br>
 ![image](https://github.com/Skinalyze/CC/assets/118964889/7d59ccde-64e4-4446-93e0-6df180f01d67)
+
+
+## Cloud Architectur
+![Untitled (1)](https://github.com/Skinalyze/CC/assets/93993894/5f3923ce-53ac-4349-97a9-54db9673e153)
+
+### Cloud Run
+Cloud Run is used to support the API deployment process, managing data retrieval and storage in the database. Using Cloud Run allows the API to run serverless, meaning we don't need to worry about server or infrastructure management. Cloud Run enables applications to scale automatically based on demand, ensuring optimal performance and efficient handling of user requests.
+
+### Cloud SQL
+In the Skinalyze application, Cloud SQL is used to store user data and application data. The type of SQL used in this application is MySQL. Cloud SQL is a managed database service that offers reliability, security, and high performance without the need to manage your own infrastructure. Cloud SQL helps ensure that user and application data is stored securely and can be accessed quickly.
