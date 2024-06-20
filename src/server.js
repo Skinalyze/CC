@@ -1,15 +1,14 @@
+require('dotenv').config();
 const express = require("express");
 const routes = require("./routes");
 
 const app = express();
 
-// Middleware untuk parsing JSON
 app.use(express.json());
 
-// Menggunakan routes
 app.use(routes);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8081;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
